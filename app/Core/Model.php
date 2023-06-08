@@ -3,9 +3,7 @@
 namespace App\Core;
 use App\Helper\Str;
 use App\Core\QueryBuilder;
-abstract class Model {
-
-
+class Model {
 	/**
      * The table associated with the model.
      *
@@ -18,7 +16,7 @@ abstract class Model {
      *
      * @var string
      */
-    public $primaryKey = 'id';
+    private $primaryKey = 'id';
 
 
 	public function __construct()
@@ -26,47 +24,58 @@ abstract class Model {
 		$this->setTable($this->getTable());
 	}
 
-	public static function query(){
-		return (new QueryBuilder(static::class))->setModel(new static);
+	public static function query():QueryBuilder{
+		return (new QueryBuilder())->setModel(new static);
 	}
 
-	
-	public function save(){
-		$query = static::query();
-	    if (!isset($this->{$this->getKeyName()})) {
-	      $query->create($this->attributes());
-	    } else {
-	      $query->update($this->{$this->getKeyName()}, $this->attributes());
-	    }
-	}
+    public static function where($column, $operator, $value = null)
+    {
+        $query = static::query();
+        return $query->where($column, $operator, $value);
+    }
+
+    public static function all()
+    {
+        return static::query()->get();
+    }
 
 
-	public static function find($id) {
+    public function save()
+    {
+        $query = static::query();
+        if (!isset($this->{$this->getPrimaryKey()})) {
+            return $query->create($this->attributes());
+        } else {
+            return $query->update($this->{$this->getPrimaryKey()}, $this->attributes());
+        }
+    }
+
+    public static function find($id) {
 	    return static::query()->find($id);
 	}
 
 	public function delete() {
-	    return static::query()->delete($this->{$this->getKeyName()});
+	    return static::query()->delete($this->{$this->getPrimaryKey()});
 	}
 
 
-	public function getTable(){
+	public function getTable():string{
 		return $this->table ?? $this->makeModelToTable();
 	}
 
 
-	public function setTable($table){
+	protected function setTable(string $table){
 		$this->table = $table;
 	}
 
-	public function attributes() {
+	private function attributes():array {
 	    $attributes = get_object_vars($this);
 
-	    return array_filter($attributes, function ($value, $key) {
-	      return !in_array($key, [$this->getTable(),$this->getKeyName()]);
+	    $filteredAttributes =  array_filter($attributes, function ($value, $key) {
+	      return !property_exists(Model::class,$key);
 	    }, ARRAY_FILTER_USE_BOTH);
 
-	    return $attributes;
+	    return $filteredAttributes;
 	 }
 
 	 /**
@@ -76,7 +85,7 @@ abstract class Model {
 	  * @return string
 	  */
 
-	 protected function makeModelToTable()
+	 private function makeModelToTable()
 	 {
 	 	$className = Str::getClassNameFromNamespace(static::class);
 
@@ -88,7 +97,7 @@ abstract class Model {
      *
      * @return string
      */
-    public function getKeyName()
+    public function getPrimaryKey()
     {
         return $this->primaryKey;
     }
@@ -99,12 +108,19 @@ abstract class Model {
      * @param  string  $key
      * @return $this
      */
-    public function setKeyName($key)
+    public function setPrimaryKey($key)
     {
         $this->primaryKey = $key;
 
         return $this;
     }
+
+    // Convert Instance Data to Array
+
+    public function toArray(){
+        return $this->attributes();
+    }
+
 
 
 }

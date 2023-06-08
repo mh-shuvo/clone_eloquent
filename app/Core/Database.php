@@ -57,13 +57,18 @@ use PDO;
             }
         }
 
-        $this->stmd->bindValue($param,$value,$type);        
+        $this->stmt->bindValue($param,$value,$type);
     }
 
     // Execute the prepare statement
 
-    public function execute(){
+    public function execute():bool{
         return $this->stmt->execute();
+    }
+
+    // Get the error details
+    public function getErrors(){
+        return implode(PHP_EOL,$this->stmt->errorInfo());
     }
 
     // Get result set as array of objects;
@@ -77,6 +82,10 @@ use PDO;
     
     public function rowCount(){
         return $this->stmt->rowCount();
+    }
+    // Get Last Inserted ID
+    public function getLastInsertedId(){
+        return $this->dbh->lastInsertId();
     }
 
   }

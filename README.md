@@ -2,10 +2,15 @@
 # Simple Eloquent
 Develop a custom Eloquent system using OOP PHP like as laravel eloquent. Initially it's support below methods
 
-- Model::find(10)
+### Available methods
+- find()
+- where()
+- all()
+- get()
+- save()
 
 
-## Supported to
+## Technology
 
 - **Language:** PHP
 - **Database:** MySQL
